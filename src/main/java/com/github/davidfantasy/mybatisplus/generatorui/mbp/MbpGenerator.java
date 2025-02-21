@@ -25,8 +25,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 
@@ -69,7 +69,7 @@ public class MbpGenerator {
                     builder.dateType(generatorConfig.getDateType());
                     //指定所有生成文件的根目录
                     builder.outputDir(projectPathResolver.getSourcePath());
-                    builder.author(genSetting.getAuthor());
+                    builder.author(StringUtils.hasText(genSetting.getAuthor()) ? genSetting.getAuthor():   System.getProperty("user.name"));
                     if (userConfig.getEntityStrategy().isSwagger2()) {
                         builder.enableSwagger();
                     }
@@ -85,8 +85,8 @@ public class MbpGenerator {
                             .enableSkipView();
                     configEntity(builder.entityBuilder(), userConfig.getEntityStrategy(), genSetting.isOverride());
                     configMapper(builder.mapperBuilder(), userConfig.getMapperStrategy(), userConfig.getMapperXmlStrategy(), genSetting.isOverride());
-                    configService(builder.serviceBuilder(), userConfig.getServiceStrategy(), userConfig.getServiceImplStrategy());
-                    configController(builder.controllerBuilder(), userConfig.getControllerStrategy());
+                    configService(builder.serviceBuilder(), userConfig.getServiceStrategy(), userConfig.getServiceImplStrategy(), genSetting.isOverride());
+                    configController(builder.controllerBuilder(), userConfig.getControllerStrategy(), genSetting.isOverride());
                 }).execute();
     }
 
@@ -204,14 +204,12 @@ public class MbpGenerator {
         entityBuilder.idType(generatorConfig.getIdType());
         entityBuilder.nameConvert(new INameConvert() {
             @Override
-            @Nonnull
-            public String entityNameConvert(@Nonnull TableInfo tableInfo) {
-                return nameConverter.entityNameConvert(tableInfo.getName());
+            public String entityNameConvert(TableInfo tableInfo) {
+                return nameConverter.entityNameConvert(tableInfo.getName(), generatorConfig.getTablePrefix());
             }
 
             @Override
-            @Nonnull
-            public String propertyNameConvert(@Nonnull TableField field) {
+            public String propertyNameConvert(TableField field) {
                 return nameConverter.propertyNameConvert(field.getName());
             }
         });
@@ -287,8 +285,11 @@ public class MbpGenerator {
     /**
      * 配置service
      */
-    private void configService(Service.Builder serviceBuilder, ServiceStrategy serviceStrategy, ServiceImplStrategy serviceImplStrategy) {
+    private void configService(Service.Builder serviceBuilder, ServiceStrategy serviceStrategy, ServiceImplStrategy serviceImplStrategy, boolean fileOverride) {
         NameConverter nameConverter = generatorConfig.getAvailableNameConverter();
+        if (fileOverride) {
+            serviceBuilder.enableFileOverride();
+        }
         if (serviceStrategy.getSuperServiceClass() != null) {
             serviceBuilder.superServiceClass(serviceStrategy.getSuperServiceClass());
         }
@@ -302,8 +303,11 @@ public class MbpGenerator {
     /**
      * 配置Controller
      */
-    private void configController(Controller.Builder controllerBuilder, ControllerStrategy controllerStrategy) {
+    private void configController(Controller.Builder controllerBuilder, ControllerStrategy controllerStrategy, boolean fileOverride) {
         NameConverter nameConverter = generatorConfig.getAvailableNameConverter();
+        if (fileOverride) {
+            controllerBuilder.enableFileOverride();
+        }
         if (controllerStrategy.isRestControllerStyle()) {
             controllerBuilder.enableRestStyle();
         }
