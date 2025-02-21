@@ -1,0 +1,8 @@
+generator:
+  jdbcUrl: jdbc:mysql://121.196.247.37:3306/htmass
+  userName: root
+  password: FlyFei_331121
+  port: 8068
+  driverClassName: com.mysql.cj.jdbc.Driver
+  basePackage: com.github.davidfantasy.mybatisplus.generatorui.example
+  tablePrefix: t_

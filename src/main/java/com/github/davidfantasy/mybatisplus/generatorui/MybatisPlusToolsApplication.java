@@ -1,20 +1,19 @@
 package com.github.davidfantasy.mybatisplus.generatorui;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.*;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-
-import java.util.Map;
 
 
 /**
@@ -34,25 +33,11 @@ import java.util.Map;
 @Slf4j
 public class MybatisPlusToolsApplication {
 
-    private static GeneratorConfig generatorConfig;
-
-    public static void run(GeneratorConfig generatorConfig) {
-        if (Strings.isNullOrEmpty(generatorConfig.getJdbcUrl())) {
-            throw new IllegalArgumentException("jdbcUrl必须要设置");
-        }
-        MybatisPlusToolsApplication.generatorConfig = generatorConfig;
-        Map<String, Object> props = Maps.newHashMap();
-        new SpringApplicationBuilder()
-                .properties(props)
-                .sources(MybatisPlusToolsApplication.class)
-                .run();
-    }
-
     @Bean
-    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> containerConfig(GeneratorConfig config) {
+    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> containerConfig(GeneratorConfig generatorConfig) {
         return factory -> {
-            if (config.getPort() != null) {
-                factory.setPort(MybatisPlusToolsApplication.generatorConfig.getPort());
+            if (generatorConfig.getPort() != null) {
+                factory.setPort(generatorConfig.getPort());
             } else {
                 factory.setPort(8080);
             }
@@ -60,10 +45,11 @@ public class MybatisPlusToolsApplication {
         };
     }
 
-    @Bean
-    public GeneratorConfig generatorConfig() {
-        return MybatisPlusToolsApplication.generatorConfig;
-    }
+//    @Bean
+//    public GeneratorConfig generatorConfig() {
+//        // This bean will be overridden by the bean defined in GeneratorApplication
+//        return new GeneratorConfig();
+//    }
 
 
 }
